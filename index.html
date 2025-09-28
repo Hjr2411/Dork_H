@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Gerador de Dorks Avançado</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin:0;
+      padding:20px;
+      background:#1e1e2e;
+      color:#e5e5e5;
+      line-height:1.6;
+    }
+    header, main, footer {
+      background:#2a2a3a;
+      padding:20px;
+      border-radius:8px;
+      margin-bottom:20px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.4);
+    }
+    h1 { text-align:center; color:#4da3ff; margin-bottom:10px; }
+    label { font-weight:bold; margin-bottom:6px; display:block; }
+    input, select, textarea {
+      width:100%;
+      padding:10px;
+      border:1px solid #444;
+      border-radius:6px;
+      background:#111;
+      color:#eee;
+      font-size:1rem;
+    }
+    button {
+      background:#4da3ff;
+      color:#fff;
+      padding:10px 16px;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:1rem;
+      font-weight:bold;
+      margin-top:10px;
+    }
+    button:hover { background:#3685d6; }
+    #dorkDisplay {
+      background:#111;
+      padding:12px;
+      border-radius:6px;
+      border:1px solid #444;
+      min-height:80px;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    #dorkPreview {
+      width:100%;
+      min-height:80px;
+      background:#111;
+      border:1px solid #444;
+      border-radius:6px;
+      color:#0f0;
+      font-family:monospace;
+      padding:10px;
+    }
+    .form-group { margin-bottom:15px; }
+    footer { text-align:center; font-size:0.9rem; color:#aaa; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gerador de Dorks Avançado</h1>
+    <p>Construa queries avançadas com <code>intitle:"index of"</code> e outros operadores.</p>
+  </header>
+
+  <main>
+    <form id="dorkForm">
+      <!-- INTITLE SECTION -->
+      <div class="form-group">
+        <label>Seção Intitle (sempre começa com <code>intitle:"index of"</code>)</label>
+        <input type="text" id="intitleText" placeholder='Texto adicional, ex: "beatles"'>
+      </div>
+      <div class="form-group">
+        <label>Tipos de Arquivo (use "|" para múltiplos)</label>
+        <input type="text" id="intitleTypes" placeholder="Ex: mp3|wmv|mp4">
+      </div>
+      <div class="form-group">
+        <label>Extras Intitle</label>
+        <input type="text" id="intitleExtra" placeholder="Ex: autor, conf, backup">
+      </div>
+
+      <!-- OUTROS CAMPOS -->
+      <div class="form-group">
+        <label for="filetype">filetype:</label>
+        <select id="filetype">
+          <option value="">-- Selecione --</option>
+          <option value="pdf">pdf</option>
+          <option value="mp3">mp3</option>
+          <option value="mp4">mp4</option>
+          <option value="avi">avi</option>
+          <option value="zip">zip</option>
+          <option value="rar">rar</option>
+          <option value="docx">docx</option>
+          <option value="xlsx">xlsx</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="keywords">Palavras-chave (sempre em aspas)</label>
+        <input type="text" id="keywords" placeholder='Ex: segurança'>
+      </div>
+
+      <div class="form-group">
+        <label for="inurl">inurl:</label>
+        <input type="text" id="inurl" placeholder="Ex: admin, login">
+      </div>
+
+      <button type="submit">Gerar Dork</button>
+    </form>
+
+    <section style="margin-top:20px;">
+      <h2>Pré-visualização</h2>
+      <div id="dorkDisplay"></div>
+      <textarea id="dorkPreview" readonly></textarea>
+      <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="copyBtn">Copiar</button>
+        <button id="openBtn">Abrir no Google</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>⚠️ Use apenas em ambientes autorizados para testes de segurança.</p>
+  </footer>
+
+  <script>
+    const form = document.getElementById("dorkForm");
+    const preview = document.getElementById("dorkPreview");
+    const display = document.getElementById("dorkDisplay");
+    const copyBtn = document.getElementById("copyBtn");
+    const openBtn = document.getElementById("openBtn");
+
+    function buildDork() {
+      let query = 'intitle:"index of"';
+
+      const intitleText = document.getElementById("intitleText").value.trim();
+      if (intitleText) query += ` "${intitleText}"`;
+
+      const intitleTypes = document.getElementById("intitleTypes").value.trim();
+      if (intitleTypes) query += ` (${intitleTypes})`;
+
+      const intitleExtra = document.getElementById("intitleExtra").value.trim();
+      if (intitleExtra) query += ` "${intitleExtra}"`;
+
+      const filetype = document.getElementById("filetype").value;
+      if (filetype) query += ` filetype:${filetype}`;
+
+      const keywords = document.getElementById("keywords").value.trim();
+      if (keywords) query += ` "${keywords}"`;
+
+      const inurl = document.getElementById("inurl").value.trim();
+      if (inurl) query += ` inurl:${inurl}`;
+
+      return query;
+    }
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const dork = buildDork();
+      display.textContent = dork;
+      preview.value = dork;
+    });
+
+    copyBtn.addEventListener("click", () => {
+      if (preview.value) {
+        navigator.clipboard.writeText(preview.value);
+        alert("Dork copiada!");
+      }
+    });
+
+    openBtn.addEventListener("click", () => {
+      if (preview.value) {
+        const url = "https://www.google.com/search?q=" + encodeURIComponent(preview.value);
+        window.open(url, "_blank");
+      }
+    });
+  </script>
+</body>
+</html>

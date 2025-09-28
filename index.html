@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Gerador de Dorks Avançado</title>
+  <title>Gerador Avançado de Dorks — Segurança</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin:0;
-      padding:20px;
-      background:#1e1e2e;
+      margin:0; padding:20px;
+      background:#1a1a1a;
       color:#e5e5e5;
       line-height:1.6;
     }
     header, main, footer {
-      background:#2a2a3a;
+      background:#262626;
       padding:20px;
       border-radius:8px;
       margin-bottom:20px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.4);
+      box-shadow:0 2px 6px rgba(0,0,0,0.5);
     }
     h1 { text-align:center; color:#4da3ff; margin-bottom:10px; }
+    h2 { color:#56d364; margin-top:0; }
     label { font-weight:bold; margin-bottom:6px; display:block; }
     input, select, textarea {
       width:100%;
@@ -40,7 +40,6 @@
       cursor:pointer;
       font-size:1rem;
       font-weight:bold;
-      margin-top:10px;
     }
     button:hover { background:#3685d6; }
     #dorkDisplay {
@@ -51,6 +50,8 @@
       min-height:80px;
       white-space:pre-wrap;
       word-break:break-word;
+      color:#0f0;
+      font-family:monospace;
     }
     #dorkPreview {
       width:100%;
@@ -64,28 +65,59 @@
     }
     .form-group { margin-bottom:15px; }
     footer { text-align:center; font-size:0.9rem; color:#aaa; }
+    .subfields { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Gerador de Dorks Avançado</h1>
-    <p>Construa queries avançadas com <code>intitle:"index of"</code> e outros operadores.</p>
+    <h1>Gerador Avançado de Dorks</h1>
+    <p>Construído para testes de segurança em SQL, e-mails e câmeras IP.</p>
   </header>
 
   <main>
     <form id="dorkForm">
-      <!-- INTITLE SECTION -->
+      <!-- PRESETS -->
       <div class="form-group">
-        <label>Seção Intitle (sempre começa com <code>intitle:"index of"</code>)</label>
-        <input type="text" id="intitleText" placeholder='Texto adicional, ex: "beatles"'>
+        <label for="presets">Presets Clássicos</label>
+        <select id="presets">
+          <option value="">-- Selecione --</option>
+          <option value='intitle:"index of" (mp3|wmv) "beatles"'>Index of MP3 Beatles</option>
+          <option value='filetype:sql "password"'>SQL Dump Passwords</option>
+          <option value='"@gmail.com" filetype:xls'>E-mails Gmail em planilhas</option>
+          <option value='inurl:"view.shtml" "Network Camera"'>Câmeras IP abertas</option>
+          <option value='intitle:"phpMyAdmin" "Welcome to phpMyAdmin"'>Painéis phpMyAdmin</option>
+        </select>
       </div>
+
+      <!-- INTITLE -->
       <div class="form-group">
-        <label>Tipos de Arquivo (use "|" para múltiplos)</label>
-        <input type="text" id="intitleTypes" placeholder="Ex: mp3|wmv|mp4">
+        <label>Intitle (sempre começa com <code>intitle:"index of"</code>)</label>
+        <div class="subfields">
+          <input type="text" id="intitleText" placeholder='Texto, ex: "beatles"'>
+          <input type="text" id="intitleTypes" placeholder='Tipos, ex: mp3|wmv|mp4'>
+        </div>
+        <div class="subfields" style="margin-top:10px;">
+          <input type="text" id="intitleExtra" placeholder='Extras, ex: conf, sql'>
+          <input type="text" id="intitleBar" value="/" placeholder="Padrão barra /">
+        </div>
       </div>
+
+      <!-- SQL -->
       <div class="form-group">
-        <label>Extras Intitle</label>
-        <input type="text" id="intitleExtra" placeholder="Ex: autor, conf, backup">
+        <label for="sqlKeywords">SQL Keywords</label>
+        <input type="text" id="sqlKeywords" placeholder='Ex: "php?id=" ou "select * from"'>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="form-group">
+        <label for="emailKeywords">E-mails</label>
+        <input type="text" id="emailKeywords" placeholder='Ex: "@gmail.com" filetype:xls'>
+      </div>
+
+      <!-- CÂMERAS -->
+      <div class="form-group">
+        <label for="cameraKeywords">Câmeras IP</label>
+        <input type="text" id="cameraKeywords" placeholder='Ex: inurl:"view.shtml"'>
       </div>
 
       <!-- OUTROS CAMPOS -->
@@ -101,12 +133,8 @@
           <option value="rar">rar</option>
           <option value="docx">docx</option>
           <option value="xlsx">xlsx</option>
+          <option value="sql">sql</option>
         </select>
-      </div>
-
-      <div class="form-group">
-        <label for="keywords">Palavras-chave (sempre em aspas)</label>
-        <input type="text" id="keywords" placeholder='Ex: segurança'>
       </div>
 
       <div class="form-group">
@@ -138,24 +166,35 @@
     const display = document.getElementById("dorkDisplay");
     const copyBtn = document.getElementById("copyBtn");
     const openBtn = document.getElementById("openBtn");
+    const presets = document.getElementById("presets");
 
+    // Constrói a query final
     function buildDork() {
       let query = 'intitle:"index of"';
 
-      const intitleText = document.getElementById("intitleText").value.trim();
-      if (intitleText) query += ` "${intitleText}"`;
+      const t = document.getElementById("intitleText").value.trim();
+      if (t) query += ` "${t}"`;
 
-      const intitleTypes = document.getElementById("intitleTypes").value.trim();
-      if (intitleTypes) query += ` (${intitleTypes})`;
+      const types = document.getElementById("intitleTypes").value.trim();
+      if (types) query += ` (${types})`;
 
-      const intitleExtra = document.getElementById("intitleExtra").value.trim();
-      if (intitleExtra) query += ` "${intitleExtra}"`;
+      const extra = document.getElementById("intitleExtra").value.trim();
+      if (extra) query += ` "${extra}"`;
+
+      const bar = document.getElementById("intitleBar").value.trim();
+      if (bar) query += ` "${bar}"`;
+
+      const sql = document.getElementById("sqlKeywords").value.trim();
+      if (sql) query += ` ${sql}`;
+
+      const email = document.getElementById("emailKeywords").value.trim();
+      if (email) query += ` ${email}`;
+
+      const camera = document.getElementById("cameraKeywords").value.trim();
+      if (camera) query += ` ${camera}`;
 
       const filetype = document.getElementById("filetype").value;
       if (filetype) query += ` filetype:${filetype}`;
-
-      const keywords = document.getElementById("keywords").value.trim();
-      if (keywords) query += ` "${keywords}"`;
 
       const inurl = document.getElementById("inurl").value.trim();
       if (inurl) query += ` inurl:${inurl}`;
@@ -163,6 +202,7 @@
       return query;
     }
 
+    // Evento principal
     form.addEventListener("submit", e => {
       e.preventDefault();
       const dork = buildDork();
@@ -170,6 +210,15 @@
       preview.value = dork;
     });
 
+    // Presets
+    presets.addEventListener("change", () => {
+      if (presets.value) {
+        display.textContent = presets.value;
+        preview.value = presets.value;
+      }
+    });
+
+    // Copiar
     copyBtn.addEventListener("click", () => {
       if (preview.value) {
         navigator.clipboard.writeText(preview.value);
@@ -177,6 +226,7 @@
       }
     });
 
+    // Abrir no Google
     openBtn.addEventListener("click", () => {
       if (preview.value) {
         const url = "https://www.google.com/search?q=" + encodeURIComponent(preview.value);

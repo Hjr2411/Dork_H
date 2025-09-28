@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gerador de Dorks de Busca Avançada — Melhorado</title>
+    <style>
+        /* --- estilo básico e responsivo (mantive sua paleta) --- */
+        :root {
+            --bg: #f4f4f4;
+            --card: #ffffff;
+            --accent: #007bff;
+            --muted: #666;
+            --preview-bg: #e9ecef;
+        }
+        html,body { height:100%; }
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg);
+            color:#222;
+            -webkit-font-smoothing:antialiased;
+        }
+        header, main, footer {
+            background: var(--card);
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(12,20,30,0.06);
+            margin-bottom: 18px;
+        }
+        h1 { color: var(--accent); font-size:1.25rem; margin:0 0 6px 0; text-align:center; }
+        header p { font-size:0.9rem; text-align:center; color:var(--muted); margin:0 0 12px 0;}
+        .form-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap:12px;
+        }
+        .form-group { display:flex; flex-direction:column; }
+        label { font-weight:600; margin-bottom:6px; font-size:0.95rem; }
+        input[type=text], input[type=date], select, textarea {
+            padding:10px;
+            border:1px solid #ddd;
+            border-radius:6px;
+            font-size:1rem;
+            background:white;
+        }
+        .controls { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        button {
+            background:var(--accent);
+            color:white;
+            border:none;
+            padding:10px 12px;
+            border-radius:6px;
+            cursor:pointer;
+            font-weight:600;
+        }
+        button.secondary { background:#6c757d; }
+        button:disabled { background:#cfcfcf; cursor:not-allowed; }
+        .tooltip { position:relative; display:inline-block; }
+        .tooltip .tooltiptext { 
+            visibility:hidden; opacity:0; transition:opacity .2s; 
+            position:absolute; bottom:125%; left:50%; transform:translateX(-50%);
+            background:#333; color:#fff; padding:6px 8px; border-radius:6px; font-size:0.85rem;
+            white-space:nowrap; z-index:10;
+        }
+        .tooltip:hover .tooltiptext { visibility:visible; opacity:1; }
+        #dorkDisplay { background:var(--preview-bg); padding:12px; border-radius:6px; min-height:96px; white-space:pre-wrap; word-break:break-word; border:1px solid #ddd; }
+        #dorkPreview { width:100%; min-height:90px; resize:vertical; }
+        #historySection ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+        #historySection li { background:var(--preview-bg); padding:8px; border-radius:6px; display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+        small.meta { color:var(--muted); font-size:0.82rem; }
+        @media (max-width:640px) { body { padding:12px; } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gerador de Dorks de Busca Avançada</h1>
+        <p>Uso responsável: esta ferramenta **apenas** para pesquisas em conteúdo público. Não use para acessar ou expor informação sem autorização.</p>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+            <input type="checkbox" id="legalCheckbox" aria-label="Declaro uso legal">
+            <span>Declaro que usarei apenas para fins legais.</span>
+        </label>
+    </header>
+
+    <main>
+        <!--
+            FORMULÁRIO PRINCIPAL
+            - cada campo mapeia um operador comum em dorks
+            - mantive tooltips para orientar o usuário
+        -->
+        <form id="dorkForm" aria-labelledby="formTitle" autocomplete="off">
+            <div class="form-grid" role="group" aria-label="Campos de construção da query">
+                <div class="form-group">
+                    <label for="engineSelect">Engine</label>
+                    <select id="engineSelect" aria-label="Selecionar mecanismo de busca">
+                        <option value="google">Google</option>
+                        <option value="bing">Bing</option>
+                        <option value="duckduckgo">DuckDuckGo</option>
+                        <option value="yahoo">Yahoo</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="keywords">Palavras-chave</label>
+                    <input id="keywords" type="text" placeholder="ex: relatório financeiro 2023" />
+                    <small class="meta">Texto livre — múltiplas palavras aceitas.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="exactPhrase">Frase exata (entre aspas)</label>
+                    <input id="exactPhrase" type="text" placeholder='ex: balanço patrimonial' />
+                </div>
+
+                <div class="form-group">
+                    <label for="excludeWords">Excluir palavras (prefixo -)</label>
+                    <input id="excludeWords" type="text" placeholder="ex: confidencial privado" />
+                    <small class="meta">Serão transformadas em -palavra1 -palavra2</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="site">site:</label>
+                    <input id="site" type="text" placeholder="ex: gov.br ou docs.google.com" />
+                </div>
+
+                <div class="form-group">
+                    <label for="filetype">filetype / ext</label>
+                    <input id="filetype" type="text" placeholder="ex: pdf, mp3, docx" />
+                </div>
+
+                <div class="form-group">
+                    <label for="intitle">intitle / allintitle</label>
+                    <input id="intitle" type="text" placeholder='ex: "ata de reunião"' />
+                </div>
+
+                <div class="form-group">
+                    <label for="inurl">inurl / allinurl</label>
+                    <input id="inurl" type="text" placeholder="ex: admin" />
+                </div>
+
+                <div class="form-group">
+                    <label for="intext">intext / allintext</label>
+                    <input id="intext" type="text" placeholder='ex: "informações de contato"' />
+                </div>
+
+                <div class="form-group">
+                    <label for="inanchor">inanchor / allinanchor</label>
+                    <input id="inanchor" type="text" placeholder='ex: "clique aqui"' />
+                </div>
+
+                <div class="form-group">
+                    <label for="orTerms">OR (separe por espaço)</label>
+                    <input id="orTerms" type="text" placeholder="ex: termo1 termo2 termo3" />
+                    <small class="meta">Será transformado em (termo1 OR termo2 OR ...)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="around">Proximidade (AROUND(n))</label>
+                    <input id="around" type="text" placeholder='ex: "termo1 AROUND(5) termo2"' />
+                </div>
+
+                <div class="form-group">
+                    <label for="before">before: (data)</label>
+                    <input id="before" type="date" />
+                </div>
+
+                <div class="form-group">
+                    <label for="after">after: (data)</label>
+                    <input id="after" type="date" />
+                </div>
+
+                <div class="form-group">
+                    <label for="range">range (ex: 2000..2010)</label>
+                    <input id="range" type="text" placeholder="ex: 2000..2010 ou 100..500" />
+                </div>
+
+                <div class="form-group" style="align-items:flex-start;">
+                    <label for="wildcardCheckbox">Usar coringa (*)</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input id="wildcardCheckbox" type="checkbox" aria-label="Permitir coringa" />
+                        <small class="meta">Se marcado, '*' pode ser usado em 'keywords' ou campo próprio</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls" style="margin-top:12px;">
+                <!-- Botões rápidos para adicionar operadores -->
+                <button type="button" id="cacheButton" class="secondary" title="Adiciona cache: ao início das palavras-chave">cache:</button>
+                <button type="button" id="relatedButton" class="secondary" title="Adiciona related: ao início das palavras-chave">related:</button>
+                <button id="generateDorkButton" type="submit" disabled>Gerar Dork</button>
+                <button id="clearButton" type="button" class="secondary">Limpar</button>
+            </div>
+        </form>
+
+        <!-- PREVIEW -->
+        <section id="previewSection" aria-live="polite" style="margin-top:16px;">
+            <h2 style="margin:0 0 8px 0;">Pré-visualização da Dork</h2>
+            <!-- dorkDisplay recebe HTML seguro (escape) + destaques -->
+            <div id="dorkDisplay" role="region" aria-label="Pré-visualização da dork"></div>
+
+            <!-- Área editável/legível para copiar. Mostramos por padrão. -->
+            <textarea id="dorkPreview" readonly aria-label="Dork em texto" rows="4"></textarea>
+
+            <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="copyButton" disabled>Copiar</button>
+                <button id="openSearchButton" disabled>Abrir no Buscador</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <section id="educationalSection">
+            <h3 style="margin-top:0">Notas rápidas sobre compatibilidade</h3>
+            <p style="margin:6px 0;color:var(--muted)">Operadores variam entre motores — sempre teste a mesma query em mais de um mecanismo se a compatibilidade for crítica.</p>
+        </section>
+
+        <section id="historySection" style="margin-top:12px;">
+            <h3 style="margin:8px 0 6px 0">Histórico (últimas 10)</h3>
+            <ul id="searchHistoryList" aria-label="Histórico de dorks"></ul>
+        </section>
+    </footer>
+
+    <script>
+    /**************************************************************************
+     * Gerador de Dorks — versão comentada e melhorada
+     * Comentários em português descrevem as principais ações.
+     **************************************************************************/
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Elementos principais
+        const legalCheckbox = document.getElementById('legalCheckbox');
+        const generateBtn = document.getElementById('generateDorkButton');
+        const copyBtn = document.getElementById('copyButton');
+        const openBtn = document.getElementById('openSearchButton');
+        const dorkPreview = document.getElementById('dorkPreview');
+        const dorkDisplay = document.getElementById('dorkDisplay');
+        const form = document.getElementById('dorkForm');
+        const clearBtn = document.getElementById('clearButton');
+
+        // Campos usados na construção
+        const fields = {
+            engineSelect: document.getElementById('engineSelect'),
+            keywords: document.getElementById('keywords'),
+            exactPhrase: document.getElementById('exactPhrase'),
+            excludeWords: document.getElementById('excludeWords'),
+            site: document.getElementById('site'),
+            filetype: document.getElementById('filetype'),
+            intitle: document.getElementById('intitle'),
+            inurl: document.getElementById('inurl'),
+            intext: document.getElementById('intext'),
+            inanchor: document.getElementById('inanchor'),
+            orTerms: document.getElementById('orTerms'),
+            around: document.getElementById('around'),
+            before: document.getElementById('before'),
+            after: document.getElementById('after'),
+            range: document.getElementById('range'),
+            wildcardCheckbox: document.getElementById('wildcardCheckbox')
+        };
+
+        // Histórico salvo no localStorage
+        let searchHistory = JSON.parse(localStorage.getItem('dorkSearchHistory') || '[]');
+
+        // --- UTILITÁRIOS IMPORTANTES ---
+
+        // Escapa caracteres HTML antes de inserir no DOM para evitar injeção:
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Função para aplicar destaque na string (recebe texto já escapado)
+        function highlightDorkEscaped(dorkEscaped) {
+            // Aplicamos destaque com spans — como já escapamos o HTML, é seguro inserir.
+            // Usamos expressões regulares 'suaves' para operadores comuns.
+            let out = dorkEscaped;
+
+            // Destaque para operadores (site:, filetype:, intitle:, inurl:, intext:, inanchor:, before:, after:)
+            out = out.replace(/(\\b(?:site|filetype|intitle|inurl|intext|inanchor|before|after|cache|related):)/gi,
+                '<span class="highlight-operator">$1</span>');
+
+            // Aspas (frases exatas)
+            out = out.replace(/(&quot;[^&]+&quot;)/g, '<span class="highlight-quote">$1</span>');
+
+            // OR
+            out = out.replace(/\\b(OR)\\b/g, '<span class="highlight-operator">$1</span>');
+
+            // Exclusão (-palavra)
+            out = out.replace(/(\\-[\\w-]+)/g, '<span class="highlight-operator">$1</span>');
+
+            // AROUND(n)
+            out = out.replace(/(AROUND\\(\\d+\\))/g, '<span class="highlight-operator">$1</span>');
+
+            // Ranges (2000..2010)
+            out = out.replace(/(\\d+\\.\\.\\d+)/g, '<span class="highlight-value">$1</span>');
+
+            // Coringa (asterisco) — já escapado como * (no escaped string ainda é '*')
+            out = out.replace(/\\*/g, '<span class="highlight-wildcard">*</span>');
+
+            return out;
+        }
+
+        // Atualiza o estado de habilitação dos botões com base no checkbox legal e conteúdo
+        function toggleButtons() {
+            const legal = legalCheckbox.checked;
+            generateBtn.disabled = !legal;
+            const hasValue = dorkPreview.value.trim().length > 0;
+            copyBtn.disabled = !legal || !hasValue;
+            openBtn.disabled = !legal || !hasValue;
+        }
+
+        // --- GERAÇÃO DA DORK ---
+        function buildDorkString() {
+            // Constrói a query passo a passo, sem adicionar lógica que incentive uso indevido.
+            const parts = [];
+
+            // keywords (texto livre)
+            const keywords = fields.keywords.value.trim();
+            if (keywords) {
+                // Se o usuário escolheu usar coringa e colocou '*' nas keywords, mantemos.
+                parts.push(keywords);
+            }
+
+            // frase exata: já armazenamos sem aspas no campo, vamos envolver aqui
+            const exact = fields.exactPhrase.value.trim();
+            if (exact) parts.push(`"${exact}"`);
+
+            // excluir palavras (transforma "a b" -> -a -b)
+            const exclude = fields.excludeWords.value.trim();
+            if (exclude) {
+                exclude.split(/\s+/).forEach(w => {
+                    if (w) parts.push(`-${w}`);
+                });
+            }
+
+            // site:
+            const site = fields.site.value.trim();
+            if (site) parts.push(`site:${site}`);
+
+            // filetype:
+            const filetype = fields.filetype.value.trim();
+            if (filetype) parts.push(`filetype:${filetype}`);
+
+            // intitle/inurl/intext/inanchor
+            const intitle = fields.intitle.value.trim();
+            if (intitle) parts.push(`intitle:${intitle}`);
+
+            const inurl = fields.inurl.value.trim();
+            if (inurl) parts.push(`inurl:${inurl}`);
+
+            const intext = fields.intext.value.trim();
+            if (intext) parts.push(`intext:${intext}`);
+
+            const inanchor = fields.inanchor.value.trim();
+            if (inanchor) parts.push(`inanchor:${inanchor}`);
+
+            // OR terms: transform 'a b' -> (a OR b)
+            const orTerms = fields.orTerms.value.trim();
+            if (orTerms) {
+                const terms = orTerms.split(/\s+/).filter(Boolean);
+                if (terms.length) parts.push(`(${terms.join(' OR ')})`);
+            }
+
+            // AROUND(n) - assumimos formato já correto inserido pelo usuário
+            const around = fields.around.value.trim();
+            if (around) parts.push(around);
+
+            // before / after (datas)
+            const before = fields.before.value;
+            if (before) parts.push(`before:${before}`);
+            const after = fields.after.value;
+            if (after) parts.push(`after:${after}`);
+
+            // range
+            const range = fields.range.value.trim();
+            if (range) parts.push(range);
+
+            // Se o checkbox coringa estiver marcado e a query não tem '*', não o adicionamos automaticamente
+            // (prefiro deixar o usuário controlar onde inserir o coringa)
+            return parts.filter(Boolean).join(' ').trim();
+        }
+
+        // Função principal: gera, exibe (com escape e destaque) e salva histórico
+        function generateDork() {
+            const dork = buildDorkString();
+            // Se vazio, limpamos as visualizações
+            if (!dork) {
+                dorkPreview.value = '';
+                dorkDisplay.innerHTML = '';
+                toggleButtons();
+                return;
+            }
+
+            // Antes de exibir, fazemos escape do texto (proteção contra XSS)
+            const escaped = escapeHtml(dork);
+
+            // Aplicar destaque em HTML seguro
+            const highlighted = highlightDorkEscaped(escaped);
+
+            // Inserir no DOM (texto destacado)
+            dorkDisplay.innerHTML = highlighted;
+
+            // Inserir no textarea (texto puro — pronto para copiar)
+            dorkPreview.value = dork;
+
+            // Salvar histórico (somente quando gerado manualmente)
+            saveSearchHistory(dork);
+
+            toggleButtons();
+        }
+
+        // --- Histórico (localStorage) ---
+        const searchHistoryList = document.getElementById('searchHistoryList');
+
+        function saveSearchHistory(dork) {
+            // Evita duplicados recentes e mantém máximo de 10 itens
+            const now = new Date().toLocaleString();
+            // Remove item igual existente
+            searchHistory = searchHistory.filter(i => i.dork !== dork);
+            searchHistory.unshift({ dork, timestamp: now });
+            searchHistory = searchHistory.slice(0, 10);
+            localStorage.setItem('dorkSearchHistory', JSON.stringify(searchHistory));
+            renderSearchHistory();
+        }
+
+        function renderSearchHistory() {
+            searchHistoryList.innerHTML = '';
+            if (!searchHistory || !searchHistory.length) {
+                const li = document.createElement('li');
+                li.textContent = 'Nenhum histórico ainda.';
+                searchHistoryList.appendChild(li);
+                return;
+            }
+            searchHistory.forEach((item, idx) => {
+                const li = document.createElement('li');
+
+                // texto (escapado)
+                const span = document.createElement('span');
+                span.innerHTML = escapeHtml(item.dork);
+                span.style.flex = '1 1 auto';
+                span.style.marginRight = '8px';
+                span.style.wordBreak = 'break-word';
+
+                const meta = document.createElement('small');
+                meta.className = 'meta';
+                meta.textContent = item.timestamp;
+
+                // botões: reabrir, copiar, excluir
+                const btnReopen = document.createElement('button');
+                btnReopen.textContent = 'Reabrir';
+                btnReopen.dataset.index = idx;
+                btnReopen.type = 'button';
+
+                const btnCopy = document.createElement('button');
+                btnCopy.textContent = 'Copiar';
+                btnCopy.dataset.index = idx;
+                btnCopy.type = 'button';
+
+                const btnDelete = document.createElement('button');
+                btnDelete.textContent = 'Excluir';
+                btnDelete.dataset.index = idx;
+                btnDelete.type = 'button';
+
+                // Estilo simples para botões pequenos
+                [btnReopen, btnCopy, btnDelete].forEach(b => { b.style.padding='6px 8px'; b.style.fontSize='0.85rem'; });
+
+                // Monta li
+                const right = document.createElement('div');
+                right.style.display = 'flex';
+                right.style.gap = '6px';
+                right.style.alignItems = 'center';
+                right.append(btnReopen, btnCopy, btnDelete);
+
+                li.append(span, meta, right);
+                searchHistoryList.appendChild(li);
+            });
+        }
+
+        // Event delegation para os botões do histórico
+        searchHistoryList.addEventListener('click', (ev) => {
+            const btn = ev.target.closest('button');
+            if (!btn) return;
+            const idx = parseInt(btn.dataset.index, 10);
+            const item = searchHistory[idx];
+            if (!item) return;
+
+            if (btn.textContent === 'Reabrir') {
+                // Re-exibe a dork no preview
+                dorkPreview.value = item.dork;
+                dorkDisplay.innerHTML = highlightDorkEscaped(escapeHtml(item.dork));
+                toggleButtons();
+            } else if (btn.textContent === 'Copiar') {
+                navigator.clipboard.writeText(item.dork).then(() => {
+                    alert('Dork copiada para a área de transferência!');
+                }).catch(() => alert('Falha ao copiar.'));
+            } else if (btn.textContent === 'Excluir') {
+                searchHistory.splice(idx, 1);
+                localStorage.setItem('dorkSearchHistory', JSON.stringify(searchHistory));
+                renderSearchHistory();
+            }
+        });
+
+        // --- Interações dos botões principais ---
+
+        // Gera quando o formulário é submetido (botão Gerar)
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Verifica se o usuário aceitou a cláusula legal
+            if (!legalCheckbox.checked) {
+                alert('Você precisa declarar que usará a ferramenta apenas para fins legais.');
+                return;
+            }
+            generateDork();
+        });
+
+        // Atualiza botão gerar com base no checkbox legal
+        legalCheckbox.addEventListener('change', toggleButtons);
+
+        // Atualiza pré-visualização em tempo real quando o usuário digita (debounce simples)
+        let debounceTimer = null;
+        form.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                // Se o usuário ainda não marcou o checkbox legal, não habilita a geração automática
+                if (!legalCheckbox.checked) {
+                    dorkPreview.value = '';
+                    dorkDisplay.innerHTML = '';
+                    toggleButtons();
+                    return;
+                }
+                const candidate = buildDorkString();
+                dorkPreview.value = candidate;
+                dorkDisplay.innerHTML = candidate ? highlightDorkEscaped(escapeHtml(candidate)) : '';
+                toggleButtons();
+            }, 300);
+        });
+
+        // Limpa todos campos
+        clearBtn.addEventListener('click', () => {
+            form.reset();
+            dorkPreview.value = '';
+            dorkDisplay.innerHTML = '';
+            toggleButtons();
+        });
+
+        // Botões cache: e related:
+        document.getElementById('cacheButton').addEventListener('click', () => {
+            const cur = fields.keywords.value.trim();
+            if (!cur) return fields.keywords.value = 'cache:';
+            if (!cur.startsWith('cache:')) fields.keywords.value = `cache:${cur}`;
+            form.dispatchEvent(new Event('input'));
+        });
+        document.getElementById('relatedButton').addEventListener('click', () => {
+            const cur = fields.keywords.value.trim();
+            if (!cur) return fields.keywords.value = 'related:';
+            if (!cur.startsWith('related:')) fields.keywords.value = `related:${cur}`;
+            form.dispatchEvent(new Event('input'));
+        });
+
+        // Botão Copiar (usa a API Clipboard)
+        copyBtn.addEventListener('click', () => {
+            const text = dorkPreview.value;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Dork copiada para a área de transferência!');
+            }).catch(() => alert('Falha ao copiar a dork.'));
+        });
+
+        // Botão Abrir no Buscador — abre nova aba com query já codificada
+        openBtn.addEventListener('click', () => {
+            const query = dorkPreview.value;
+            if (!query) return;
+            const engine = fields.engineSelect.value;
+            let url = '';
+            switch (engine) {
+                case 'google': url = `https://www.google.com/search?q=${encodeURIComponent(query)}`; break;
+                case 'bing': url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`; break;
+                case 'duckduckgo': url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`; break;
+                case 'yahoo': url = `https://search.yahoo.com/search?p=${encodeURIComponent(query)}`; break;
+            }
+            // confirmação simples antes de abrir
+            if (confirm('Abrir pesquisa no mecanismo selecionado?')) {
+                window.open(url, '_blank', 'noopener');
+            }
+        });
+
+        // Inicializações
+        renderSearchHistory();
+        toggleButtons();
+    });
+    </script>
+</body>
+</html>

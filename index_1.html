@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Dorks de Busca Avançada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+        header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        header p {
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        #legalCheckbox {
+            margin-right: 10px;
+        }
+        main {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        .form-group small {
+            display: block;
+            color: #777;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-right: 10px;
+            transition: background-color 0.2s ease;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #previewSection {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        #dorkPreview {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+            background-color: #e9ecef;
+            resize: vertical;
+        }
+        footer {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            header, main, footer {
+                padding: 15px;
+            }
+            .form-group input[type="text"],
+            .form-group input[type="date"],
+            .form-group select,
+            #dorkPreview {
+                width: 100%;
+            }
+        }
+
+        /* Estilos para destaque na pré-visualização */
+        .highlight-operator { color: #007bff; font-weight: bold; }
+        .highlight-keyword { color: #28a745; }
+        .highlight-value { color: #dc3545; }
+        .highlight-quote { color: #ffc107; }
+        .highlight-wildcard { color: #6f42c1; }
+
+        /* Estilo para tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Posição do tooltip */
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        #historySection ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #historySection li {
+            background-color: #e9ecef;
+            margin-bottom: 5px;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #historySection li span {
+            flex-grow: 1;
+            margin-right: 10px;
+            word-break: break-all;
+        }
+
+        #historySection li small {
+            font-size: 0.75em;
+            color: #888;
+            margin-right: 10px;
+        }
+
+        #historySection li button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gerador de Dorks de Busca Avançada</h1>
+        <p>Uso responsável: esta ferramenta serve para encontrar conteúdo público e de domínio público. O uso para acessar, expor ou explorar informações privadas ou sem autorização é ilegal e antiético. O autor desta ferramenta não se responsabiliza pelo uso indevido.</p>
+        <label>
+            <input type="checkbox" id="legalCheckbox">
+            Declaro que usarei apenas para fins legais.
+        </label>
+    </header>
+
+    <main>
+        <form id="dorkForm">
+            <div class="form-group">
+                <label for="engineSelect" class="tooltip">Engine:
+                    <span class="tooltiptext">Selecione o mecanismo de busca.</span>
+                </label>
+                <select id="engineSelect">
+                    <option value="google">Google</option>
+                    <option value="bing">Bing</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                    <option value="yahoo">Yahoo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="keywords" class="tooltip">Palavras-chave:
+                    <span class="tooltiptext">Texto livre; aceita múltiplas palavras / frases. Ex: relatório financeiro 2023</span>
+                </label>
+                <input type="text" id="keywords" placeholder="Ex: relatório financeiro 2023">
+            </div>
+
+            <div class="form-group">
+                <label for="exactPhrase" class="tooltip">Frase exata (\"\"):
+                    <span class="tooltiptext">Busca a frase exata entre aspas. Ex: \"balanço patrimonial\"</span>
+                </label>
+                <input type="text" id="exactPhrase" placeholder="Ex: \"balanço patrimonial\"" >
+            </div>
+
+            <div class="form-group">
+                <label for="excludeWords" class="tooltip">Excluir palavras (prefixo -):
+                    <span class="tooltiptext">Exclui resultados que contenham estas palavras. Ex: -confidencial -privado</span>
+                </label>
+                <input type="text" id="excludeWords" placeholder="Ex: -confidencial -privado">
+            </div>
+
+            <div class="form-group">
+                <label for="site" class="tooltip">site: (domínio ou subdomínio):
+                    <span class="tooltiptext">Limita a busca a um domínio ou subdomínio específico. Ex: site:gov.br ou site:docs.google.com</span>
+                </label>
+                <input type="text" id="site" placeholder="Ex: site:gov.br ou site:docs.google.com">
+            </div>
+
+            <div class="form-group">
+                <label for="filetype" class="tooltip">filetype / ext: (ex: pdf, mp3, epub):
+                    <span class="tooltiptext">Busca por tipos de arquivo específicos. Ex: pdf ou docx</span>
+                </label>
+                <input type="text" id="filetype" placeholder="Ex: pdf ou docx">
+            </div>
+
+            <div class="form-group">
+                <label for="intitle" class="tooltip">intitle / allintitle:
+                    <span class="tooltiptext">Busca por termos no título da página. Ex: intitle:\"ata de reunião\"</span>
+                </label>
+                <input type="text" id="intitle" placeholder="Ex: intitle:\"ata de reunião\"" >
+            </div>
+
+            <div class="form-group">
+                <label for="inurl" class="tooltip">inurl / allinurl:
+                    <span class="tooltiptext">Busca por termos na URL da página. Ex: inurl:admin</span>
+                </label>
+                <input type="text" id="inurl" placeholder="Ex: inurl:admin">
+            </div>
+
+            <div class="form-group">
+                <label for="intext" class="tooltip">intext / allintext:
+                    <span class="tooltiptext">Busca por termos no corpo do texto da página. Ex: intext:\"informações de contato\"</span>
+                </label>
+                <input type="text" id="intext" placeholder="Ex: intext:\"informações de contato\"" >
+            </div>
+
+            <div class="form-group">
+                <label for="inanchor" class="tooltip">inanchor / allinanchor:
+                    <span class="tooltiptext">Busca por termos no texto âncora de links. Ex: inanchor:\"clique aqui\"</span>
+                </label>
+                <input type="text" id="inanchor" placeholder="Ex: inanchor:\"clique aqui\"" >
+            </div>
+
+            <div class="form-group">
+                <label for="orTerms" class="tooltip">OR (lista de termos separados por OR):
+                    <span class="tooltiptext">Busca por qualquer um dos termos listados. Ex: termo1 OR termo2 OR termo3</span>
+                </label>
+                <input type="text" id="orTerms" placeholder="Ex: termo1 OR termo2 OR termo3">
+            </div>
+
+            <div class="form-group">
+                <label for="around" class="tooltip">Proximidade (AROUND(n)):
+                    <span class="tooltiptext">Busca por termos próximos um do outro (suporte varia por engine). Ex: \"termo1 AROUND(5) termo2\"</span>
+                </label>
+                <input type="text" id="around" placeholder="Ex: \"termo1 AROUND(5) termo2\"" >
+            </div>
+
+            <div class="form-group">
+                <label for="before" class="tooltip">before: (data):
+                    <span class="tooltiptext">Resultados publicados antes desta data (suporte varia por engine).</span>
+                </label>
+                <input type="date" id="before">
+            </div>
+
+            <div class="form-group">
+                <label for="after" class="tooltip">after: (data):
+                    <span class="tooltiptext">Resultados publicados depois desta data (suporte varia por engine).</span>
+                </label>
+                <input type="date" id="after">
+            </div>
+
+            <div class="form-group">
+                <label for="range" class="tooltip">range (.. para número/ano):
+                    <span class="tooltiptext">Busca por um intervalo numérico ou de anos. Ex: 2000..2010 ou 100..500</span>
+                </label>
+                <input type="text" id="range" placeholder="Ex: 2000..2010 ou 100..500">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="wildcardCheckbox">
+                    Usar Coringa (*)
+                </label>
+                <small>Permite o uso do operador coringa *.</small>
+            </div>
+
+            <div class="form-group">
+                <button type="button" id="cacheButton">cache:</button>
+                <button type="button" id="relatedButton">related:</button>
+                <small>Botões para adicionar operadores cache: ou related:.</small>
+            </div>
+
+            <button type="submit" id="generateDorkButton" disabled>Gerar Dork</button>
+        </form>
+
+        <section id="previewSection">
+            <h2>Pré-visualização da Dork</h2>
+            <div id="dorkDisplay" style="white-space: pre-wrap; word-break: break-all; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #e9ecef; min-height: 100px; margin-bottom: 10px;"></div>
+            <textarea id="dorkPreview" rows="5" readonly style="display: none;"></textarea>
+            <button id="copyButton" disabled>Copiar</button>
+            <button id="openSearchButton" disabled>Abrir no Buscador</button>
+        </section>
+    </main>
+
+    <footer>
+        <section id="educationalSection">
+            <h2>Diferenças de Suporte entre Buscadores</h2>
+            <p>Os operadores de busca avançada (dorks) podem ter comportamentos ligeiramente diferentes ou não serem suportados por todos os mecanismos de busca. Abaixo, um resumo básico:</p>
+            <ul>
+                <li><strong>Google:</strong> Amplo suporte para a maioria dos operadores. `AROUND(n)` é bem suportado.</li>
+                <li><strong>Bing:</strong> Bom suporte, similar ao Google, mas com algumas variações. `AROUND(n)` é suportado.</li>
+                <li><strong>DuckDuckGo:</strong> Suporte decente, mas pode ser menos robusto para operadores muito específicos. Não suporta `AROUND(n)`.</li>
+                <li><strong>Yahoo:</strong> Baseado em parte no Bing, então o suporte é similar, mas pode ter suas próprias peculiaridades.</li>
+            </ul>
+            <p>Sempre teste suas dorks em diferentes engines para verificar a compatibilidade e os resultados.</p>
+        </section>
+
+        <section id="historySection">
+            <h2>Histórico de Buscas</h2>
+            <ul id="searchHistoryList"></ul>
+        </section>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const legalCheckbox = document.getElementById("legalCheckbox");
+            const generateDorkButton = document.getElementById("generateDorkButton");
+            const copyButton = document.getElementById("copyButton");
+            const openSearchButton = document.getElementById("openSearchButton");
+            const dorkPreview = document.getElementById("dorkPreview");
+            const dorkForm = document.getElementById("dorkForm");
+            const engineSelect = document.getElementById("engineSelect");
+            const dorkDisplay = document.getElementById("dorkDisplay");
+
+            // Lista de termos sensíveis
+            const sensitiveTerms = ["admin", "login", "passwd", "password", "credential", ".env", "ssh", "telnet", "camera", "webcam", "db", "database", "backup", "private", "secret"];
+
+            // Função para habilitar/desabilitar botões
+            function toggleButtons() {
+                const isLegal = legalCheckbox.checked;
+                generateDorkButton.disabled = !isLegal;
+                copyButton.disabled = !isLegal || dorkPreview.value === "";
+                openSearchButton.disabled = !isLegal || dorkPreview.value === "";
+            }
+
+            // Validação do checkbox legal
+            legalCheckbox.addEventListener("change", toggleButtons);
+
+            // Função para destacar a dork com cores
+            function highlightDork(dorkString) {
+                let highlightedDork = dorkString;
+
+                // Destaque para operadores (ex: site:, filetype:, intitle:)
+                highlightedDork = highlightedDork.replace(/(\b(?:site|filetype|intitle|inurl|intext|inanchor|before|after|cache|related):[^\s]+)/g, 
+                                                        '<span class="highlight-operator">$1</span>');
+                
+                // Destaque para termos entre aspas
+                highlightedDork = highlightedDork.replace(/(\"[^\"]+\")/g, '<span class="highlight-quote">$1</span>');
+
+                // Destaque para OR
+                highlightedDork = highlightedDork.replace(/\b(OR)\b/g, '<span class="highlight-operator">$1</span>');
+
+                // Destaque para exclusão (-)
+                highlightedDork = highlightedDork.replace(/(\-[^\s]+)/g, '<span class="highlight-operator">$1</span>');
+
+                // Destaque para AROUND(n)
+                highlightedDork = highlightedDork.replace(/(\bAROUND\(\d+\))/g, '<span class="highlight-operator">$1</span>');
+
+                // Destaque para coringa (*)
+                highlightedDork = highlightedDork.replace(/(\b\*\b)/g, '<span class="highlight-wildcard">$1</span>');
+
+                // Destaque para ranges (..)
+                highlightedDork = highlightedDork.replace(/(\d+\.\.\d+)/g, '<span class="highlight-value">$1</span>');
+
+                return highlightedDork;
+            }
+
+            // Geração da dork
+            function generateDork() {
+                let query = [];
+                const engine = engineSelect.value;
+
+                // Palavras-chave
+                const keywords = document.getElementById("keywords").value.trim();
+                if (keywords) query.push(keywords);
+
+                // Frase exata
+                const exactPhrase = document.getElementById("exactPhrase").value.trim();
+                if (exactPhrase) query.push(`"${exactPhrase}"`);
+
+                // Excluir palavras
+                const excludeWords = document.getElementById("excludeWords").value.trim();
+                if (excludeWords) {
+                    excludeWords.split(" ").forEach(word => {
+                        if (word) query.push(`-${word}`);
+                    });
+                }
+
+                // site:
+                const site = document.getElementById("site").value.trim();
+                if (site) query.push(`site:${site}`);
+
+                // filetype / ext:
+                const filetype = document.getElementById("filetype").value.trim();
+                if (filetype) query.push(`filetype:${filetype}`);
+
+                // intitle / allintitle:
+                const intitle = document.getElementById("intitle").value.trim();
+                if (intitle) query.push(`intitle:${intitle}`);
+
+                // inurl / allinurl:
+                const inurl = document.getElementById("inurl").value.trim();
+                if (inurl) query.push(`inurl:${inurl}`);
+
+                // intext / allintext:
+                const intext = document.getElementById("intext").value.trim();
+                if (intext) query.push(`intext:${intext}`);
+
+                // inanchor / allinanchor:
+                const inanchor = document.getElementById("inanchor").value.trim();
+                if (inanchor) query.push(`inanchor:${inanchor}`);
+
+                // OR
+                const orTerms = document.getElementById("orTerms").value.trim();
+                if (orTerms) {
+                    const terms = orTerms.split(" ").filter(t => t);
+                    if (terms.length > 0) query.push(`(${terms.join(" OR ")})`);
+                }
+
+                // AROUND(n)
+                const around = document.getElementById("around").value.trim();
+                if (around) query.push(around); // Assume o formato correto já inserido pelo usuário
+
+                // before: / after:
+                const beforeDate = document.getElementById("before").value;
+                if (beforeDate) query.push(`before:${beforeDate}`);
+                const afterDate = document.getElementById("after").value;
+                if (afterDate) query.push(`after:${afterDate}`);
+
+                // range (..)
+                const range = document.getElementById("range").value.trim();
+                if (range) query.push(range); // Assume o formato correto já inserido pelo usuário
+
+                // Coringa *
+                const wildcardCheckbox = document.getElementById("wildcardCheckbox");
+                if (wildcardCheckbox.checked && keywords.includes("*")) {
+                    // O coringa já estaria nas palavras-chave, mas podemos adicionar lógica específica se necessário
+                }
+
+                // Verificar termos sensíveis
+                const fullQuery = query.join(" ");
+                let containsSensitiveTerm = false;
+                for (const term of sensitiveTerms) {
+                    if (fullQuery.toLowerCase().includes(term)) {
+                        containsSensitiveTerm = true;
+                        break;
+                    }
+                }
+
+                if (containsSensitiveTerm) {
+                    alert("Aviso: Sua consulta contém termos sensíveis e não pode ser gerada. Por favor, remova-os.");
+                    dorkPreview.value = "";
+                    dorkDisplay.innerHTML = "";
+                    toggleButtons();
+                    return;
+                }
+
+                dorkPreview.value = fullQuery;
+                dorkDisplay.innerHTML = highlightDork(fullQuery);
+                toggleButtons();
+
+                // Salvar no histórico após gerar a dork
+                if (fullQuery) {
+                    saveSearchHistory(fullQuery);
+                }
+            }
+
+            // Event listeners para os campos do formulário
+            dorkForm.addEventListener("input", generateDork);
+            dorkForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                generateDork();
+            });
+
+            // Botão Copiar
+            copyButton.addEventListener("click", () => {
+                navigator.clipboard.writeText(dorkPreview.value).then(() => {
+                    alert("Dork copiada para a área de transferência!");
+                }, () => {
+                    alert("Falha ao copiar a dork.");
+                });
+            });
+
+            // Botão Abrir no Buscador
+            openSearchButton.addEventListener("click", () => {
+                const query = dorkPreview.value;
+                if (!query) return;
+
+                const engine = engineSelect.value;
+                let searchUrl = "";
+
+                switch (engine) {
+                    case "google":
+                        searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                        break;
+                    case "bing":
+                        searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+                        break;
+                    case "duckduckgo":
+                        searchUrl = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+                        break;
+                    case "yahoo":
+                        searchUrl = `https://search.yahoo.com/search?p=${encodeURIComponent(query)}`;
+                        break;
+                }
+
+                if (searchUrl) {
+                    window.open(searchUrl, "_blank");
+                }
+            });
+
+            // Botões cache: e related:
+            document.getElementById("cacheButton").addEventListener("click", () => {
+                const currentKeywords = document.getElementById("keywords").value.trim();
+                if (currentKeywords && !currentKeywords.includes("cache:")) {
+                    document.getElementById("keywords").value = `cache:${currentKeywords}`;
+                    generateDork();
+                }
+            });
+
+            document.getElementById("relatedButton").addEventListener("click", () => {
+                const currentKeywords = document.getElementById("keywords").value.trim();
+                if (currentKeywords && !currentKeywords.includes("related:")) {
+                    document.getElementById("keywords").value = `related:${currentKeywords}`;
+                    generateDork();
+                }
+            });
+
+            // Histórico de buscas
+            const searchHistoryList = document.getElementById("searchHistoryList");
+            let searchHistory = JSON.parse(localStorage.getItem("dorkSearchHistory")) || [];
+
+            function saveSearchHistory(dork) {
+                searchHistory.unshift({ dork: dork, timestamp: new Date().toLocaleString() });
+                searchHistory = searchHistory.slice(0, 10); // Manter apenas as últimas 10
+                localStorage.setItem("dorkSearchHistory", JSON.stringify(searchHistory));
+                renderSearchHistory();
+            }
+
+            function renderSearchHistory() {
+                searchHistoryList.innerHTML = "";
+                searchHistory.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <span>${item.dork}</span>
+                        <small>${item.timestamp}</small>
+                        <button data-action="reopen" data-index="${index}">Reabrir</button>
+                        <button data-action="copy" data-index="${index}">Copiar</button>
+                        <button data-action="delete" data-index="${index}">Excluir</button>
+                    `;
+                    searchHistoryList.appendChild(li);
+                });
+            }
+
+            searchHistoryList.addEventListener("click", (e) => {
+                const target = e.target;
+                if (target.tagName === "BUTTON") {
+                    const action = target.dataset.action;
+                    const index = parseInt(target.dataset.index);
+                    const item = searchHistory[index];
+
+                    if (action === "reopen") {
+                        dorkPreview.value = item.dork;
+                        dorkDisplay.innerHTML = highlightDork(item.dork);
+                        toggleButtons();
+                    } else if (action === "copy") {
+                        navigator.clipboard.writeText(item.dork).then(() => {
+                            alert("Dork copiada para a área de transferência!");
+                        });
+                    } else if (action === "delete") {
+                        searchHistory.splice(index, 1);
+                        localStorage.setItem("dorkSearchHistory", JSON.stringify(searchHistory));
+                        renderSearchHistory();
+                    }
+                }
+            });
+
+            // Renderizar histórico na carga da página
+            renderSearchHistory();
+
+            // Adicionar tooltips aos botões cache e related
+            document.getElementById("cacheButton").title = "Adiciona o operador cache: à busca.";
+            document.getElementById("relatedButton").title = "Adiciona o operador related: à busca.";
+
+            // Adicionar tooltips ao checkbox de coringa
+            document.getElementById("wildcardCheckbox").parentNode.title = "Permite o uso do operador coringa * em suas palavras-chave.";
+
+            // Inicializar estado dos botões
+            toggleButtons();
+        });
+    </script>
+</body>
+</html>
+

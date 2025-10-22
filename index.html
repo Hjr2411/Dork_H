@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gerador Profissional de Dorks - Testes de Segurança</title>
+  <style>
+    /* --- estilo enxuto (mantive o visual similar ao seu) --- */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter, "Segoe UI", system-ui, sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px}
+    .container{max-width:1200px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+    header{background:linear-gradient(135deg,#2c3e50,#34495e);color:#fff;padding:28px;text-align:center}
+    header h1{font-size:1.6rem;margin-bottom:6px}
+    .warning{background:#ff6b6b;color:#fff;padding:12px;margin:16px;border-radius:8px;text-align:center;font-weight:700}
+    .main{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:24px}
+    .section{background:#f8f9fa;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+    .section h2{margin-bottom:12px;color:#2c3e50;font-size:1.1rem}
+    label{display:block;margin-bottom:6px;color:#2c3e50;font-weight:600}
+    input[type="text"], select, textarea{width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px}
+    .checkbox-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+    .checkbox-item{display:flex;align-items:center;gap:8px;background:#fff;padding:8px;border-radius:6px;cursor:pointer}
+    .button-row{display:flex;flex-wrap:wrap;gap:8px}
+    .btn{padding:10px 14px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+    .primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+    .secondary{background:#6c757d;color:#fff}
+    .success{background:#28a745;color:#fff}
+    .output{grid-column:1/-1}
+    #resultArea{min-height:260px;font-family:Courier,monospace;padding:12px;border-radius:8px;border:2px solid #667eea;background:#f7f9fc;white-space:pre-wrap;resize:vertical}
+    .stats{margin-top:10px;background:#eef2ff;padding:10px;border-radius:8px}
+    .sample-box{background:#fff3cd;padding:10px;border-radius:8px;border-left:4px solid #856404;color:#856404}
+    footer{padding:16px;text-align:center;color:#5a5a5a;font-size:13px}
+    @media(max-width:900px){.main{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔍 Gerador Profissional de Dorks</h1>
+      <div>Ferramenta para Testes de Segurança Autorizados — use com responsabilidade</div>
+    </header>
+
+    <div class="warning">
+      ⚠️ USO APENAS PARA TESTES AUTORIZADOS. NÃO USE PARA ATIVIDADES ILEGAIS.
+    </div>
+
+    <div class="main">
+      <!-- Configurações -->
+      <div class="section">
+        <h2>🎯 Configuração Básica</h2>
+
+        <label for="targetDomain">Domínio Alvo</label>
+        <input id="targetDomain" type="text" placeholder="exemplo.com.br">
+
+        <label for="searchEngine" style="margin-top:10px">Motor de Busca</label>
+        <select id="searchEngine">
+          <option value="google">Google</option>
+          <option value="bing">Bing</option>
+          <option value="duckduckgo">DuckDuckGo</option>
+          <option value="shodan">Shodan</option>
+          <option value="github">GitHub</option>
+        </select>
+
+        <label for="customKeywords" style="margin-top:10px">Palavras-chave personalizadas (vírgula)</label>
+        <input id="customKeywords" type="text" placeholder="admin, login, senha">
+
+        <div style="margin-top:12px">
+          <label><input id="useQuotes" type="checkbox"> Usar aspas para correspondência exata</label>
+        </div>
+        <div style="margin-top:6px">
+          <label><input id="combineOperators" type="checkbox"> Combinar múltiplos operadores (mais abrangente)</label>
+        </div>
+
+      </div>
+
+      <!-- Operadores e tipos -->
+      <div class="section">
+        <h2>🔧 Operadores & Tipos</h2>
+
+        <div class="checkbox-group" style="margin-bottom:8px">
+          <label class="checkbox-item"><input type="checkbox" data-op="site:" id="op_site"> site:</label>
+          <label class="checkbox-item"><input type="checkbox" data-op="inurl:" id="op_inurl"> inurl:</label>
+          <label class="checkbox-item"><input type="checkbox" data-op="intitle:" id="op_intitle"> intitle:</label>
+          <label class="checkbox-item"><input type="checkbox" data-op="intext:" id="op_intext"> intext:</label>
+          <label class="checkbox-item"><input type="checkbox" data-op="filetype:" id="op_filetype"> filetype:</label>
+          <label class="checkbox-item"><input type="checkbox" data-op="ext:" id="op_ext"> ext:</label>
+        </div>
+
+        <h2 style="margin-top:12px">📄 Tipos de arquivo</h2>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" data-file="pdf" id="file_pdf"> PDF</label>
+          <label class="checkbox-item"><input type="checkbox" data-file="doc|docx" id="file_doc"> Word</label>
+          <label class="checkbox-item"><input type="checkbox" data-file="xls|xlsx" id="file_xls"> Excel</label>
+          <label class="checkbox-item"><input type="checkbox" data-file="txt" id="file_txt"> TXT</label>
+          <label class="checkbox-item"><input type="checkbox" data-file="json" id="file_json"> JSON</label>
+          <label class="checkbox-item"><input type="checkbox" data-file="sql" id="file_sql"> SQL</label>
+        </div>
+      </div>
+
+      <!-- Categorias / Templates -->
+      <div class="section">
+        <h2>🛡️ Categorias / Templates</h2>
+
+        <div style="margin-bottom:8px">
+          <label for="templateSelect">Templates rápidos</label>
+          <select id="templateSelect">
+            <option value="">-- Selecione --</option>
+            <option value="sensitive">Arquivos Sensíveis</option>
+            <option value="login_admin">Login / Admin</option>
+            <option value="git">Repositórios Git Expostos</option>
+          </select>
+          <button id="loadTpl" class="btn secondary" style="margin-left:8px">Carregar</button>
+        </div>
+
+        <div class="sample-box" id="tplInfo">
+          Use templates para preencher automaticamente palavras-chave e operadores.
+        </div>
+
+        <h2 style="margin-top:10px">Exclusões</h2>
+        <label for="excludeTerms">Termos para excluir (vírgula)</label>
+        <input id="excludeTerms" type="text" placeholder="youtube, facebook">
+
+      </div>
+
+      <!-- Ações / Resultados -->
+      <div class="section output">
+        <h2>📤 Resultados</h2>
+        <div class="button-row" style="margin-bottom:8px">
+          <button id="btnGenerate" class="btn primary">🚀 Gerar Dorks</button>
+          <button id="btnClear" class="btn secondary">🗑️ Limpar</button>
+          <button id="btnCopy" class="btn success">📋 Copiar</button>
+          <button id="btnExport" class="btn secondary">💾 Exportar</button>
+          <button id="btnReport" class="btn secondary">📊 Relatório</button>
+          <button id="btnSample" class="btn secondary">🔎 Inserir Exemplos</button>
+        </div>
+
+        <div class="info" style="margin-bottom:8px">ℹ️ Resultado editável — ajuste, refine e execute apenas em escopos autorizados.</div>
+
+        <textarea id="resultArea" placeholder="Dorks gerados aparecerão aqui..." spellcheck="false"></textarea>
+
+        <div class="stats" id="stats" style="display:none">
+          <div>📊 Total de dorks: <strong id="statTotal">0</strong></div>
+          <div>⏱️ Gerado em: <strong id="statTime">--</strong></div>
+          <div>🎯 Domínio: <strong id="statDomain">--</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Desenvolvido para uso profissional — mantenha logs, autorizações e ética. (Exporte os resultados com responsabilidade)
+    </footer>
+  </div>
+
+  <script>
+    /* ===========================
+       Utilitários e templates
+       =========================== */
+
+    const templates = {
+      sensitive: {
+        keywords: ['confidential','password','senha','api_key','secret','private','internal','credential'],
+        operators: ['site:', 'filetype:'],
+        files: ['pdf','docx','xlsx','env','sql','json']
+      },
+      login_admin: {
+        keywords: ['login','admin','wp-admin','dashboard','signin','authenticate'],
+        operators: ['site:','inurl:'],
+        files: []
+      },
+      git: {
+        keywords: ['.git','.env','composer.lock','package.json'],
+        operators: ['inurl:','site:'],
+        files: ['env','txt']
+      }
+    };
+
+    /* ===========================
+       Helpers
+       =========================== */
+
+    function el(id){ return document.getElementById(id); }
+
+    function nowISO(){ return new Date().toLocaleString(); }
+
+    function sanitizeDomain(d){
+      if(!d) return '';
+      // remove protocol and trailing slashes
+      d = d.trim().replace(/^https?:\/\//i,'').replace(/\/.*$/,'').toLowerCase();
+      // basic domain validation
+      const bad = /[^a-z0-9\.\-]/i;
+      if(bad.test(d)) return '';
+      return d;
+    }
+
+    function uniqueArray(arr){
+      return Array.from(new Set(arr)).filter(Boolean);
+    }
+
+    /* ===========================
+       Funções principais
+       =========================== */
+
+    // Gera os dorks com base nas opções do formulário
+    function generateDorks(){
+      const domainRaw = el('targetDomain').value;
+      const domain = sanitizeDomain(domainRaw);
+      const engine = el('searchEngine').value;
+      const customK = el('customKeywords').value.split(',').map(s=>s.trim()).filter(Boolean);
+      const useQuotes = el('useQuotes').checked;
+      const combineOperators = el('combineOperators').checked;
+      const excludeTerms = el('excludeTerms').value.split(',').map(s=>s.trim()).filter(Boolean);
+
+      // coletar operadores selecionados
+      const opEls = Array.from(document.querySelectorAll('input[data-op]')).filter(i=>i.checked);
+      const ops = opEls.map(i=>i.getAttribute('data-op'));
+
+      // coletar tipos de arquivo selecionados
+      const fileEls = Array.from(document.querySelectorAll('input[data-file]')).filter(i=>i.checked);
+      const fileTypes = fileEls.map(i=>i.getAttribute('data-file')).flatMap(f => f.split('|'));
+
+      // validações
+      if(!domain){
+        alert('Informe um domínio alvo válido (exemplo.com.br).');
+        el('targetDomain').focus();
+        return;
+      }
+
+      // juntar palavras
+      const keywords = uniqueArray([...customK]);
+
+      // se nada selecionado, sugerir padrões
+      if(ops.length === 0 && fileTypes.length === 0 && keywords.length === 0){
+        if(!confirm('Nenhum operador, arquivo ou palavra-chave selecionados. Deseja gerar exemplos gerais para este domínio?')) return;
+      }
+
+      // construir combinações:
+      // estratégia segura: limitar combinações explosivas (máx 500 dorks)
+      let dorks = [];
+
+      // helper para formatar token (aspas se necessário)
+      const fmt = token => useQuotes && /\s/.test(token) ? `"${token}"` : token;
+
+      // 1) combinação operador + keyword (+domain)
+      ops.forEach(op => {
+        keywords.forEach(k => {
+          let dk = `${op}${fmt(k)}`;
+          if(op === 'site:' || op === 'inurl:' || op === 'intitle:' || op === 'intext:'){
+            if(domain) dk = `${op}${fmt(k)} site:${domain}`;
+          } else if(op === 'filetype:'){
+            if(fileTypes.length>0){
+              fileTypes.forEach(ft => dorks.push(`${op}${ft} ${fmt(k)} site:${domain}`));
+              return;
+            }
+          }
+          dorks.push(dk + (op.includes('site:') || dk.includes('site:') ? '' : (domain ? ` site:${domain}` : '')));
+        });
+
+        // se não há keyword, combine apenas op + domain/filetype
+        if(keywords.length === 0){
+          if(op === 'filetype:' && fileTypes.length>0){
+            fileTypes.forEach(ft => dorks.push(`${op}${ft} site:${domain}`));
+          } else {
+            dorks.push(`${op}${domain}`);
+          }
+        }
+      });
+
+      // 2) tipo de arquivo + keywords (se não gerado)
+      if(fileTypes.length > 0 && keywords.length>0){
+        fileTypes.forEach(ft => keywords.forEach(k => dorks.push(`filetype:${ft} ${fmt(k)} site:${domain}`)));
+      }
+
+      // 3) keywords simples com site:
+      keywords.forEach(k => dorks.push(`${fmt(k)} site:${domain}`));
+
+      // 4) combinando múltiplos operadores (opcional e limitado)
+      if(combineOperators && ops.length >= 2 && keywords.length > 0){
+        const combos = [];
+        // gerar combinações pareadas (evita explosão combinatória)
+        for(let i=0;i<ops.length && combos.length<30;i++){
+          for(let j=i+1;j<ops.length && combos.length<30;j++){
+            combos.push([ops[i], ops[j]]);
+          }
+        }
+        combos.forEach(pair=>{
+          keywords.slice(0,6).forEach(k => {
+            dorks.push(`${pair[0]}${fmt(k)} ${pair[1]}${domain}`);
+            dorks.push(`${pair[0]}${fmt(k)} ${pair[1]}${fmt(k)} site:${domain}`);
+          });
+        });
+      }
+
+      // 5) exclusão de termos
+      if(excludeTerms.length>0){
+        const base = dorks.slice();
+        dorks = base.map(d => d + ' ' + excludeTerms.map(t=>`-${t}`).join(' '));
+      }
+
+      // limpar, dedup, e limitar
+      dorks = uniqueArray(dorks).filter(Boolean).slice(0, 500);
+
+      // pré-formatar para motor de busca (ex.: GitHub usa different query)
+      const formatted = formatForEngine(dorks, engine);
+
+      // popular textarea
+      el('resultArea').value = formatted.join('\n');
+
+      // atualizar estatísticas
+      el('statTotal').textContent = formatted.length;
+      el('statTime').textContent = nowISO();
+      el('statDomain').textContent = domain;
+      el('stats').style.display = 'block';
+    }
+
+    // adapta levemente a sintaxe para alguns mecanismos (ex.: GitHub search)
+    function formatForEngine(dorks, engine){
+      if(engine === 'github'){
+        // GitHub search: "filename:composer.json path:.env org:acme"
+        return dorks.map(d => {
+          // trocar "filetype:env" -> "filename:.env" (heurística)
+          return d.replace(/filetype:env/gi, 'filename:.env').replace(/site:[^\s]+/gi,'');
+        });
+      }
+      if(engine === 'shodan'){
+        // Shodan uses different syntax; keep dork but annotate
+        return dorks.map(d => `${d} (search:shodan)`);
+      }
+      // default: sem alteração
+      return dorks;
+    }
+
+    /* ===========================
+       UI: load template, clear, copy, export, report
+       =========================== */
+
+    function loadTemplate(){
+      const key = el('templateSelect').value;
+      if(!key || !templates[key]) return alert('Selecione um template válido.');
+      const tpl = templates[key];
+      // preenche campos: keywords, operadores e arquivos
+      el('customKeywords').value = tpl.keywords.join(', ');
+      // marcar operadores e arquivos conforme template (limpa antes)
+      document.querySelectorAll('input[data-op]').forEach(i => i.checked = tpl.operators.includes(i.getAttribute('data-op')));
+      document.querySelectorAll('input[data-file]').forEach(i => {
+        const f = i.getAttribute('data-file');
+        // match any ft from template.files
+        i.checked = tpl.files.some(tf => f.split('|').includes(tf));
+      });
+      el('tplInfo').textContent = `Carregado template: ${key} — palavras: ${tpl.keywords.slice(0,6).join(', ')}. Ajuste antes de gerar.`;
+    }
+
+    function clearAll(){
+      if(!confirm('Limpar todos os campos e resultados?')) return;
+      el('targetDomain').value = '';
+      el('customKeywords').value = '';
+      el('excludeTerms').value = '';
+      el('resultArea').value = '';
+      document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
+      el('stats').style.display = 'none';
+    }
+
+    async function copyToClipboard(){
+      try{
+        await navigator.clipboard.writeText(el('resultArea').value);
+        alert('Resultados copiados para a área de transferência.');
+      }catch(e){
+        // fallback
+        el('resultArea').select();
+        document.execCommand('copy');
+        alert('Resultado copiado (fallback).');
+      }
+    }
+
+    function exportToFile(){
+      const text = el('resultArea').value;
+      if(!text) return alert('Nada para exportar.');
+      const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dorks_${(new Date()).toISOString().slice(0,19).replace(/[:T]/g,'-')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function generateReport(){
+      const lines = el('resultArea').value.split(/\r?\n/).filter(Boolean);
+      const total = lines.length;
+      const sample = lines.slice(0,10).join('\n');
+      const report = [
+        `Relatório de Dorks - Gerado em: ${nowISO()}`,
+        `Total de dorks: ${total}`,
+        `Amostra (até 10 linhas):`,
+        sample || '(sem resultados gerados)',
+        '',
+        'OBS: Execute com autorização. Mantenha auditoria e escopo.'
+      ].join('\n\n');
+      // mostrar como download simples
+      const blob = new Blob([report], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report_dorks_${(new Date()).toISOString().slice(0,19).replace(/[:T]/g,'-')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function insertSamples(){
+      const samples = [
+        'site:exemplo.com.br filetype:pdf "confidential"',
+        'inurl:admin site:exemplo.com.br',
+        'intitle:"login" site:exemplo.com.br -facebook -youtube',
+        'filetype:env site:exemplo.com.br',
+        'intext:"api_key" site:exemplo.com.br'
+      ];
+      el('resultArea').value = samples.join('\n');
+      el('statTotal').textContent = samples.length;
+      el('statTime').textContent = nowISO();
+      el('statDomain').textContent = sanitizeDomain(el('targetDomain').value) || 'exemplo.com.br';
+      el('stats').style.display = 'block';
+    }
+
+    /* ===========================
+       Event binding (DOMContentLoaded)
+       =========================== */
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // map buttons
+      el('btnGenerate').addEventListener('click', generateDorks);
+      el('btnClear').addEventListener('click', clearAll);
+      el('btnCopy').addEventListener('click', copyToClipboard);
+      el('btnExport').addEventListener('click', exportToFile);
+      el('btnReport').addEventListener('click', generateReport);
+      el('loadTpl').addEventListener('click', loadTemplate);
+      el('btnSample').addEventListener('click', insertSamples);
+
+      // allow pressing Ctrl+Enter in the result area to copy quickly
+      el('resultArea').addEventListener('keydown', (ev) => {
+        if(ev.ctrlKey && ev.key === 'Enter') copyToClipboard();
+      });
+    });
+
+    // Expondo a função globalmente para compatibilidade com onclick inline (se necessário)
+    window.generateDorks = generateDorks;
+    window.loadTemplate = loadTemplate;
+    window.clearAll = clearAll;
+    window.copyToClipboard = copyToClipboard;
+    window.exportToFile = exportToFile;
+    window.generateReport = generateReport;
+
+  </script>
+</body>
+</html>

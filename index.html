@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador Profissional de Dorks - Testes de Segurança</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .warning {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .checkbox-item:hover {
+            background: #e9ecef;
+        }
+
+        .checkbox-item input {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .output-section {
+            grid-column: 1 / -1;
+        }
+
+        #resultArea {
+            width: 100%;
+            min-height: 300px;
+            padding: 20px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: #f8f9fa;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stats {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .stats-item {
+            display: inline-block;
+            margin-right: 20px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            color: #0c5460;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Gerador Profissional de Dorks</h1>
+            <p>Ferramenta para Testes de Segurança Autorizados</p>
+        </header>
+
+        <div class="warning">
+            ⚠️ USO EXCLUSIVO PARA TESTES DE SEGURANÇA AUTORIZADOS EM SISTEMAS PRÓPRIOS OU COM PERMISSÃO EXPLÍCITA
+        </div>
+
+        <div class="main-content">
+            <!-- Seção de Configuração Básica -->
+            <div class="section">
+                <h2>🎯 Configuração Básica</h2>
+                
+                <div class="form-group">
+                    <label for="targetDomain">Domínio Alvo:</label>
+                    <input type="text" id="targetDomain" placeholder="exemplo.com.br">
+                </div>
+
+                <div class="form-group">
+                    <label for="searchEngine">Motor de Busca:</label>
+                    <select id="searchEngine">
+                        <option value="google">Google</option>
+                        <option value="bing">Bing</option>
+                        <option value="duckduckgo">DuckDuckGo</option>
+                        <option value="shodan">Shodan</option>
+                        <option value="github">GitHub</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="customKeywords">Palavras-chave Personalizadas:</label>
+                    <input type="text" id="customKeywords" placeholder="admin, login, senha (separadas por vírgula)">
+                </div>
+            </div>
+
+            <!-- Seção de Operadores -->
+            <div class="section">
+                <h2>🔧 Operadores de Busca</h2>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="op_site" value="site:">
+                        <label for="op_site">site: (domínio específico)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="op_inurl" value="inurl:">
+                        <label for="op_inurl">inurl: (na URL)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="op_intitle" value="intitle:">
+                        <label for="op_intitle">intitle: (no título)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="op_intext" value="intext:">
+                        <label for="op_intext">intext: (no texto)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="op_filetype" value="filetype:">
+                        <label for="op_filetype">filetype: (tipo de arquivo)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="op_ext" value="ext:">
+                        <label for="op_ext">ext: (extensão)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="op_cache" value="cache:">
+                        <label for="op_cache">cache: (versão cache)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="op_link" value="link:">
+                        <label for="op_link">link: (links para)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Tipos de Arquivos -->
+            <div class="section">
+                <h2>📄 Tipos de Arquivos</h2>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_pdf" value="pdf">
+                        <label for="file_pdf">PDF</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_doc" value="doc|docx">
+                        <label for="file_doc">Word (doc/docx)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_xls" value="xls|xlsx">
+                        <label for="file_xls">Excel (xls/xlsx)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_ppt" value="ppt|pptx">
+                        <label for="file_ppt">PowerPoint</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_txt" value="txt">
+                        <label for="file_txt">TXT</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_xml" value="xml">
+                        <label for="file_xml">XML</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_json" value="json">
+                        <label for="file_json">JSON</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_sql" value="sql">
+                        <label for="file_sql">SQL</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_log" value="log">
+                        <label for="file_log">LOG</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_bak" value="bak">
+                        <label for="file_bak">Backup (bak)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_conf" value="conf|config">
+                        <label for="file_conf">Config</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="file_env" value="env">
+                        <label for="file_env">ENV</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Categorias de Vulnerabilidade -->
+            <div class="section">
+                <h2>🛡️ Categorias de Vulnerabilidade</h2>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_login" value="login">
+                        <label for="cat_login">Páginas de Login</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_admin" value="admin">
+                        <label for="cat_admin">Painéis Admin</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_backup" value="backup">
+                        <label for="cat_backup">Backups</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_database" value="database">
+                        <label for="cat_database">Databases</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_password" value="password">
+                        <label for="cat_password">Senhas</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_config" value="config">
+                        <label for="cat_config">Configurações</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_error" value="error">
+                        <label for="cat_error">Mensagens de Erro</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_directory" value="directory">
+                        <label for="cat_directory">Directory Listing</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_api" value="api">
+                        <label for="cat_api">API Keys</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_credential" value="credential">
+                        <label for="cat_credential">Credenciais</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_upload" value="upload">
+                        <label for="cat_upload">Upload Forms</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cat_phpinfo" value="phpinfo">
+                        <label for="cat_phpinfo">PHPInfo</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Templates Predefinidos -->
+            <div class="section">
+                <h2>📋 Templates Predefinidos</h2>
+                
+                <div class="form-group">
+                    <label for="templateSelect">Selecione um Template:</label>
+                    <select id="templateSelect">
+                        <option value="">-- Selecione --</option>
+                        <option value="sqli">SQL Injection</option>
+                        <option value="xss">XSS Vulnerabilities</option>
+                        <option value="lfi">Local File Inclusion</option>
+                        <option value="rfi">Remote File Inclusion</option>
+                        <option value="sensitive">Arquivos Sensíveis</option>
+                        <option value="exposed">Dados Expostos</option>
+                        <option value="cms">CMS Vulnerabilities</option>
+                        <option value="iot">IoT Devices</option>
+                        <option value="cloud">Cloud Storage</option>
+                        <option value="git">Git Repositories</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="loadTemplate()" style="margin-top: 10px; width: 100%;">Carregar Template</button>
+                </div>
+            </div>
+
+            <!-- Seção de Opções Avançadas -->
+            <div class="section">
+                <h2>⚙️ Opções Avançadas</h2>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="excludeCommon"> Excluir sites comuns (Wikipedia, Facebook, etc)
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="useQuotes"> Usar aspas para correspondência exata
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="combineOperators"> Combinar múltiplos operadores
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="excludeTerms">Termos para Excluir:</label>
+                    <input type="text" id="excludeTerms" placeholder="youtube, facebook (separados por vírgula)">
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="section" style="grid-column: 1 / -1;">
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateDorks()">🚀 Gerar Dorks</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">🗑️ Limpar Tudo</button>
+                    <button class="btn btn-success" onclick="copyToClipboard()">📋 Copiar Resultados</button>
+                    <button class="btn btn-secondary" onclick="exportToFile()">💾 Exportar para Arquivo</button>
+                    <button class="btn btn-secondary" onclick="generateReport()">📊 Gerar Relatório</button>
+                </div>
+            </div>
+
+            <!-- Área de Resultados -->
+            <div class="section output-section">
+                <h2>📤 Resultados - Dorks Gerados</h2>
+                <div class="info-box">
+                    ℹ️ Os dorks gerados abaixo são editáveis. Você pode modificar, adicionar ou remover linhas conforme necessário.
+                </div>
+                <textarea id="resultArea" placeholder="Os dorks gerados aparecerão aqui e poderão ser editados..."></textarea>
+                
+                <div class="stats" id="statsArea" style="display: none;">
+                    <span class="stats-item">📊 Total de Dorks: <strong id="totalDorks">0</strong></span>
+                    <span class="stats-item">⏱️ Gerado em: <strong id="generationTime">--</strong></span>
+                    <span class="stats-item">🎯 Domínio: <strong id="targetInfo">--</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Templates predefinidos
+        const templates = {
+            sqli: {
+                keywords: 'id, page, product, category',
+                categories: ['database', 'error'],
+                operators: ['inurl', 'site'],
+                files: ['php', 'asp']
+            },
+            xss: {
+                keywords: 'search, query, q, s',
+                categories: ['error'],
+                operators: ['inurl', 'site'],
+                files: []
+            },
+            lfi: {
+                keywords: 'file, page, include, path',
+                categories: ['error', 'config'],
+                operators: ['inurl', 'site'],
+                files: ['php']
+            },
+            rfi: {
+                keywords: 'url, file, page, include',
+                categories: ['error'],
+                operators: ['inurl', 'site'],
+                files: ['php']
+            },
+            sensitive: {
+                keywords: 'confidential, private, secret, internal',
+                categories: ['password', 'credential', 'api', 'config'],
+                operators: ['filetype', 'site', 'intitle'],
+                files: ['pdf', 'doc|docx', 'xls|xlsx', 'txt']
+          
